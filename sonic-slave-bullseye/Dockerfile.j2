@@ -424,7 +424,12 @@ RUN apt-get update && apt-get install -y eatmydata && eatmydata apt-get install 
         xmlto \
         rake-compiler \
         default-jdk \
-        libgoogle-gson-java
+        libgoogle-gson-java \
+# For FlexConfig
+        libfmt-dev \
+        libfmt7 \
+        libspdlog-dev \
+        libspdlog1
 
 {%- if CROSS_BUILD_ENVIRON == "y" %}
 # Arm vs. amd64 versions conflict - remove amd64 packages
