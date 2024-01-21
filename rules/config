@@ -146,6 +146,9 @@ ENABLE_HOST_SERVICE_ON_START = y
 # INCLUDE_RESTAPI - build docker-sonic-restapi for configuring the switch using REST APIs
 INCLUDE_RESTAPI = n
 
+# INCLUDE_FLEXCONFIG - build docker-sonic-flexconfig for configuring the switch using Configuration Management System
+INCLUDE_FLEXCONFIG = n
+
 # INCLUDE_NAT - build docker-nat for nat support
 INCLUDE_NAT = y
 
