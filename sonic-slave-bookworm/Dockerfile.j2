@@ -418,7 +418,14 @@ RUN apt-get update && apt-get install -y \
         auditd \
 # For protobuf
         protobuf-compiler \
-        libprotobuf-dev
+        libprotobuf-dev \
+# For FlexConfig
+        libfmt-dev \
+        libfmt9 \
+        libspdlog-dev \
+        libspdlog1.10 \
+        libcpp-httplib-dev \
+        libcpp-httplib0.11
 
 {%- if CROSS_BUILD_ENVIRON == "y" %}
 # Arm vs. amd64 versions conflict - remove amd64 packages
