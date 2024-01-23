@@ -421,11 +421,9 @@ RUN apt-get update && apt-get install -y \
         libprotobuf-dev \
 # For FlexConfig
         libfmt-dev \
-        libfmt9 \
+        libfmt7 \
         libspdlog-dev \
-        libspdlog1.10 \
-        libcpp-httplib-dev \
-        libcpp-httplib0.11
+        libspdlog1
 
 {%- if CROSS_BUILD_ENVIRON == "y" %}
 # Arm vs. amd64 versions conflict - remove amd64 packages
