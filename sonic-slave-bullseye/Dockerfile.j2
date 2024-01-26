@@ -418,7 +418,9 @@ RUN apt-get update && apt-get install -y \
         pkg-config \
 # For audisp-tacplus
         libauparse-dev \
-        auditd
+        auditd \
+# For Flexconfig
+        libspdlog-dev
 
 {%- if CROSS_BUILD_ENVIRON == "y" %}
 # Arm vs. amd64 versions conflict - remove amd64 packages

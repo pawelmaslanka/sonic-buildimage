@@ -161,6 +161,10 @@ ifeq ($(SONIC_INCLUDE_RESTAPI),y)
 INCLUDE_RESTAPI = y
 endif
 
+ifeq ($(SONIC_INCLUDE_FLEXCONFIG),y)
+INCLUDE_FLEXCONFIG = y
+endif
+
 ifeq ($(SONIC_ENABLE_SYNCD_RPC),y)
 ENABLE_SYNCD_RPC = y
 endif
@@ -415,6 +419,7 @@ $(info "INCLUDE_ICCPD"                   : "$(INCLUDE_ICCPD)")
 $(info "INCLUDE_SYSTEM_TELEMETRY"        : "$(INCLUDE_SYSTEM_TELEMETRY)")
 $(info "ENABLE_HOST_SERVICE_ON_START"    : "$(ENABLE_HOST_SERVICE_ON_START)")
 $(info "INCLUDE_RESTAPI"                 : "$(INCLUDE_RESTAPI)")
+$(info "INCLUDE_FLEXCONFIG"              : "$(INCLUDE_FLEXCONFIG)")
 $(info "INCLUDE_SFLOW"                   : "$(INCLUDE_SFLOW)")
 $(info "ENABLE_SFLOW_DROPMON"            : "$(ENABLE_SFLOW_DROPMON)")
 $(info "INCLUDE_NAT"                     : "$(INCLUDE_NAT)")
@@ -1289,6 +1294,7 @@ $(addprefix $(TARGET_PATH)/, $(SONIC_INSTALLERS)) : $(TARGET_PATH)/% : \
 	export sonic_su_prod_signing_tool="/sonic/scripts/$(shell basename -- $(SECURE_UPGRADE_PROD_SIGNING_TOOL))"
 	export include_system_telemetry="$(INCLUDE_SYSTEM_TELEMETRY)"
 	export include_restapi="$(INCLUDE_RESTAPI)"
+	export include_flexconfig="$(INCLUDE_FLEXCONFIG)"
 	export include_nat="$(INCLUDE_NAT)"
 	export include_p4rt="$(INCLUDE_P4RT)"
 	export include_sflow="$(INCLUDE_SFLOW)"
