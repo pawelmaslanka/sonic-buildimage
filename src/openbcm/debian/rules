@@ -1,0 +1,157 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE=1
+
+# Name of the source package
+psource:=openbcm-source
+
+# The short upstream name, used for the module source directory
+sname:=openbcm
+
+# prefix of the target package name
+PACKAGE=openbcm
+PKG_NAME ?= openbcm
+# modifieable for experiments or debugging m-a
+
+# %:
+# 	dh $@
+
+platform=x86-smp_generic_64-2_6
+TARGET=unix-user
+
+SDKLT=/sonic/src/OpenBCM/sdk-6.5.21/libs/sdklt
+SDK=/sonic/src/OpenBCM/sdk-6.5.21
+
+MA_DIR ?= /usr/share/modass
+KVERSION ?= 5.10.0-23-2-amd64
+KERNVERSION ?= 5.10.0-23-2
+
+# load generic variable handling
+-include $(MA_DIR)/include/generic.make
+# load default rules, including kdist, kdist_image, ...
+-include $(MA_DIR)/include/common-rules.make
+
+sdk: sdk_libs sdklt_libs system_libs
+
+include $(SDK)/make/Make.config
+
+system_libs:
+	echo "Prepare system_libs"
+	LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
+	BUILD_SDKLT=1 BUILD_AAPL=1 LTSW_CHIPS=1 SYSOK=1 \
+	KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
+	KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	$(MAKE) -C $(SDKLT)/linux/bde SDK=$(SDKLT) LKM_BLDDIR=$(SDK)/kbuild
+
+ifdef BUILD_KNET
+	LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
+	BUILD_SDKLT=1 BUILD_AAPL=1 LTSW_CHIPS=1 SYSOK=1 \
+	KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
+	KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	$(MAKE) -C $(SDKLT)/linux/knet SDK=$(SDKLT) LKM_BLDDIR=$(SDK)/kbuild
+endif
+
+# LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
+# BUILD_SDKLT=1 BUILD_AAPL=1 LTSW_CHIPS=1 SYSOK=1 \
+# KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+# KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
+# KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+# $(MAKE) -C $(SDK)/systems/bde/linux/user CFLAGS="$(CFLAGS) -I$(SDK)/system/bde/linux/include"
+
+sdk_libs:
+	echo "Prepare sdk_libs"
+	LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
+	BUILD_SDKLT=1 BUILD_AAPL=1 LTSW_CHIPS=1 SYSOK=1 \
+	KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
+	$(MAKE) -f $(SDK)/make/Make.libsum SDK=$(SDK) TARGET=unix-user platform=x86-smp_generic_64-2_6
+
+	LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
+	BUILD_SDKLT=1 BUILD_AAPL=1 LTSW_CHIPS=1 SYSOK=1 \
+	KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
+	KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	$(MAKE) -C $(SDK) TARGET=$(TARGET) platform=$(platform)
+
+sdklt_libs:
+	echo "Prepare sdklt_libs"
+	LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
+	BUILD_SDKLT=1 BUILD_AAPL=1 LTSW_CHIPS=1 SYSOK=1 \
+	KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
+	KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	$(MAKE) -C $(SDKLT) SDK=$(SDKLT)
+
+prepare_sdk:
+	echo "Prepare SDK"
+	# create links
+	cd /; sudo mkdir -p /lib/modules/$(KERNVERSION)-amd64
+	cd /; sudo rm /lib/modules/$(KERNVERSION)-amd64/build
+	cd /; sudo rm /lib/modules/$(KERNVERSION)-amd64/source
+	cd /; sudo ln -s /usr/src/linux-headers-$(KERNVERSION)-common/ /lib/modules/$(KERNVERSION)-amd64/source
+	cd /; sudo ln -s /usr/src/linux-headers-$(KERNVERSION)-amd64/ /lib/modules/$(KERNVERSION)-amd64/build
+	cd /; sudo ln -s /usr/src/linux-headers-$(KERNVERSION)-amd64/include/generated/ /usr/src/linux-headers-$(KERNVERSION)-common/include/generated
+	cd /; sudo ln -s /usr/src/linux-headers-$(KERNVERSION)-amd64/arch/x86/include/generated/ /usr/src/linux-headers-$(KERNVERSION)-common/arch/x86/include/generated
+	cd /; sudo ln -s /usr/src/linux-headers-$(KERNVERSION)-amd64/arch/x86/module.lds /usr/src/linux-headers-$(KERNVERSION)-common/arch/x86/module.lds
+	cd /; sudo ln -s /usr/src/linux-headers-$(KERNVERSION)-amd64/include/config/ /usr/src/linux-headers-$(KERNVERSION)-common/include/config
+	cd /; sudo cp /usr/src/linux-headers-$(KERNVERSION)-amd64/Module.symvers /usr/src/linux-headers-$(KERNVERSION)-common/Module.symvers
+	mkdir -p $(SDK)/kbuild
+
+	# Add here command to compile/build the package.
+	SDK=/sonic/src/OpenBCM/sdk-6.5.21 \
+	LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
+	BUILD_SDKLT=1 BUILD_AAPL=1 LTSW_CHIPS=1 SYSOK=1 \
+	KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
+	KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	$(MAKE) -C $(SDK)/systems/bde/linux/user CFLAGS="$(CFLAGS) -I$(SDK)/systems/bde/linux/include"
+
+clean:
+
+build: prepare_sdk sdk
+	echo "From build ---"
+	# # create links
+	# cd /; sudo mkdir -p /lib/modules/$(KERNVERSION)-amd64
+	# cd /; sudo rm /lib/modules/$(KERNVERSION)-amd64/build
+	# cd /; sudo rm /lib/modules/$(KERNVERSION)-amd64/source
+	# cd /; sudo ln -s /usr/src/linux-headers-$(KERNVERSION)-common/ /lib/modules/$(KERNVERSION)-amd64/source
+	# cd /; sudo ln -s /usr/src/linux-headers-$(KERNVERSION)-amd64/ /lib/modules/$(KERNVERSION)-amd64/build
+	# cd /; sudo ln -s /usr/src/linux-headers-$(KERNVERSION)-amd64/include/generated/ /usr/src/linux-headers-$(KERNVERSION)-common/include/generated
+	# cd /; sudo ln -s /usr/src/linux-headers-$(KERNVERSION)-amd64/arch/x86/include/generated/ /usr/src/linux-headers-$(KERNVERSION)-common/arch/x86/include/generated
+	# cd /; sudo ln -s /usr/src/linux-headers-$(KERNVERSION)-amd64/arch/x86/module.lds /usr/src/linux-headers-$(KERNVERSION)-common/arch/x86/module.lds
+	# cd /; sudo ln -s /usr/src/linux-headers-$(KERNVERSION)-amd64/include/config/ /usr/src/linux-headers-$(KERNVERSION)-common/include/config
+	# cd /; sudo cp /usr/src/linux-headers-$(KERNVERSION)-amd64/Module.symvers /usr/src/linux-headers-$(KERNVERSION)-common/Module.symvers
+
+	# # Add here command to compile/build the package.
+	# SDK=/sonic/src/OpenBCM/sdk-6.5.21 \
+	# LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
+	# BUILD_SDKLT=1 BUILD_AAPL=1 LTSW_CHIPS=1 SYSOK=1 \
+	# KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	# KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
+	# KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	# $(MAKE) -C $(SDK)/systems/bde/linux/user CFLAGS="$(CFLAGS) -I$(SDK)/systems/bde/linux/include"
+
+	# $(MAKE) sdk
+
+binary:
+
+install:
+	echo "From install ---"
+	# # create links
+	# cd /; sudo mkdir -p /lib/modules/$(KERNVERSION)-amd64
+	# cd /; sudo rm /lib/modules/$(KERNVERSION)-amd64/build
+	# cd /; sudo rm /lib/modules/$(KERNVERSION)-amd64/source
+	# cd /; sudo ln -s /usr/src/linux-headers-$(KERNVERSION)-common/ /lib/modules/$(KERNVERSION)-amd64/source
+	# cd /; sudo ln -s /usr/src/linux-headers-$(KERNVERSION)-amd64/ /lib/modules/$(KERNVERSION)-amd64/build
+	# cd /; sudo ln -s /usr/src/linux-headers-$(KERNVERSION)-amd64/include/generated/ /usr/src/linux-headers-$(KERNVERSION)-common/include/generated
+	# cd /; sudo ln -s /usr/src/linux-headers-$(KERNVERSION)-amd64/arch/x86/include/generated/ /usr/src/linux-headers-$(KERNVERSION)-common/arch/x86/include/generated
+	# cd /; sudo ln -s /usr/src/linux-headers-$(KERNVERSION)-amd64/arch/x86/module.lds /usr/src/linux-headers-$(KERNVERSION)-common/arch/x86/module.lds
+	# cd /; sudo ln -s /usr/src/linux-headers-$(KERNVERSION)-amd64/include/config/ /usr/src/linux-headers-$(KERNVERSION)-common/include/config
+	# cd /; sudo cp /usr/src/linux-headers-$(KERNVERSION)-amd64/Module.symvers /usr/src/linux-headers-$(KERNVERSION)-common/Module.symvers
+
+	# # Add here command to compile/build the package.
+	# make -n -f Makefile.sdk V=1
+
+#k = $(shell echo $(KVERS) | grep -q ^2.6 && echo k)

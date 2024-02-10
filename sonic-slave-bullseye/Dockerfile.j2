@@ -420,7 +420,9 @@ RUN apt-get update && apt-get install -y \
         libauparse-dev \
         auditd \
 # For Flexconfig
-        libspdlog-dev
+        libspdlog-dev \
+# For OpenBCM
+        python3-filelock
 
 {%- if CROSS_BUILD_ENVIRON == "y" %}
 # Arm vs. amd64 versions conflict - remove amd64 packages

@@ -1,0 +1,14 @@
+Source: openbcm
+Section: main
+Priority: extra
+Maintainer: Guohan Lu <gulv@microsoft.com>
+Build-Depends: debhelper (>= 8.0.0), bzip2
+Standards-Version: 6.5.21
+#Vcs-Git: git://git.debian.org/collab-maint/bcmsdk.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/bcmsdk.git;a=summary
+
+Package: openbcm
+Architecture: amd64
+Section: main
+Depends: linux-image-5.10.0-23-2-amd64-unsigned
+Description: Broadcom SDK
