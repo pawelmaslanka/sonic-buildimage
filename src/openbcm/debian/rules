@@ -49,7 +49,7 @@ SDK=/sonic/src/OpenBCM/sdk-6.5.21
 # load default rules, including kdist, kdist_image, ...
 -include $(MA_DIR)/include/common-rules.make
 
-sdk: sdk sdklt kernel_module
+sdk: sdk sdklt kernel_module demo
 
 include $(SDK)/make/Make.config
 
@@ -94,6 +94,14 @@ sdklt:
 	KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
 	KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
 	$(MAKE) -C $(SDKLT) SDK=$(SDKLT)
+
+demo:
+	LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
+	BUILD_SDKLT=1 BUILD_AAPL=1 LTSW_CHIPS=1 SYSOK=1 \
+	KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
+	KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	$(MAKE) -C $(SDKLT)/appl/demo SDK=$(SDKLT)
 
 sdk_env:
 	echo "Prepare SDK env"
