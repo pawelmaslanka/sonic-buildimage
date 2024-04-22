@@ -1,0 +1,64 @@
+#!/bin/bash
+# This script load/unload OpenBCM kernel modules
+
+### BEGIN INIT INFO
+# Provides:          load-openbcm
+# Required-Start:
+# Required-Stop:
+# Should-Start:
+# Should-Stop:
+# Default-Start:     S
+# Default-Stop:      0 6
+# Short-Description: Load OpenBCM kernel modules
+### END INIT INFO
+
+function create_devices()
+{
+    rm -f /dev/linux_ngbde
+    rm -f /dev/linux_ngknet
+
+    mknod /dev/linux_ngbde       c 120 0
+    mknod /dev/linux_ngknet      c 121 0
+}
+
+function load_kernel_modules()
+{
+    modprobe linux_ngbde
+    modprobe linux_ngknet
+}
+
+function remove_kernel_modules()
+{
+    rmmod linux_ngknet
+    rmmod linux_ngbde
+}
+
+case "$1" in
+start)
+    echo -n "Load OpenBCM kernel modules... "
+
+    create_devices
+    load_kernel_modules
+
+    echo "done."
+    ;;
+
+stop)
+    echo -n "Unload OpenBCM kernel modules... "
+
+    remove_kernel_modules
+
+    echo "done."
+    ;;
+
+force-reload|restart)
+    echo "Not supported"
+    ;;
+
+*)
+    echo "Usage: /etc/init.d/openbcm.init {start|stop}"
+    exit 1
+    ;;
+esac
+
+exit 0

@@ -422,7 +422,10 @@ RUN apt-get update && apt-get install -y \
 # For Flexconfig
         libspdlog-dev \
 # For OpenBCM
-        python3-filelock
+        python3-filelock \
+# For NetMiddleware
+        protobuf-compiler-grpc \
+        libgrpc++-dev
 
 {%- if CROSS_BUILD_ENVIRON == "y" %}
 # Arm vs. amd64 versions conflict - remove amd64 packages

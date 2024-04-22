@@ -21,6 +21,6 @@ $(DOCKER_FLEXCONFIG)_CONTAINER_NAME = flexconfig
 $(DOCKER_FLEXCONFIG)_RUN_OPT += -t
 $(DOCKER_FLEXCONFIG)_RUN_OPT += -v /var/run/redis/redis.sock:/var/run/redis/redis.sock
 $(DOCKER_FLEXCONFIG)_RUN_OPT += -v /etc/sonic/credentials:/etc/sonic/credentials:ro
-$(DOCKER_FLEXCONFIG)_RUN_OPT += -p=8001:8001/tcp
+$(DOCKER_FLEXCONFIG)_RUN_OPT += --network=host
 
 $(DOCKER_FLEXCONFIG)_FILES += $(SUPERVISOR_PROC_EXIT_LISTENER_SCRIPT)

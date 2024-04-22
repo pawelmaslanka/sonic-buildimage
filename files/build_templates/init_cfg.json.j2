@@ -56,6 +56,8 @@
     {% do features.append(("restapi", "enabled", false, "enabled")) %}
 {%- endif %}
 {%- if include_flexconfig == "y" %}{% do features.append(("flexconfig", "enabled", false, "enabled")) %}{% endif %}
+{%- if include_net_middleware == "y" %}{% do features.append(("net-middleware", "enabled", false, "enabled")) %}{% endif %}
+{%- if include_bcmasicd == "y" %}{% do features.append(("bcmasicd", "enabled", false, "enabled")) %}{% endif %}
 {%- if include_sflow == "y" %}{% do features.append(("sflow", "disabled", true, "enabled")) %}{% endif %}
 {%- if include_macsec == "y" %}{% do features.append(("macsec", "{% if 'type' in DEVICE_METADATA['localhost'] and DEVICE_METADATA['localhost']['type'] == 'SpineRouter' and DEVICE_RUNTIME_METADATA['MACSEC_SUPPORTED'] %}enabled{% else %}disabled{% endif %}", false, "enabled")) %}{% endif %}
 {%- if include_system_telemetry == "y" %}{% do features.append(("telemetry", "enabled", true, "enabled")) %}{% endif %}

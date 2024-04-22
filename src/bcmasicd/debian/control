@@ -1,12 +1,13 @@
-Source: openbcm
+Source: bcmasicd
 Section: main
 Priority: extra
 Maintainer: Pawel Maslanka <pawmas@hotmail.com>
 Build-Depends: debhelper (>= 12.0.0), bzip2
 Standards-Version: 6.5.21
 
-Package: openbcm
+Package: bcmasicd
 Architecture: amd64
 Section: main
-Depends: linux-image-5.10.0-23-2-amd64-unsigned
-Description: Broadcom SDK
+Built-Using: ${misc:Built-Using}
+Depends: ${shlibs:Depends}
+Description: Broadcom ASIC Daemon

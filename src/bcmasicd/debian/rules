@@ -1,0 +1,198 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# NOTE: This file was inspired by rules in saibcm-modules package from SONiC repo:
+# https://github.com/sonic-net/sonic-buildimage/blob/master/platform/broadcom/saibcm-modules/debian/rules
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+psource:=bcmasicd-source
+
+sname:=bcmasicd
+
+PKG_NAME=bcmasicd_6.5.21_amd64.deb
+PACKAGE=bcmasicd
+MA_DIR ?= /usr/share/modass
+
+platform=x86-smp_generic_64-2_6
+TARGET=unix-user
+
+SDK=/sonic/src/OpenBCM/sdk-6.5.21
+
+-include $(MA_DIR)/include/generic.make
+-include $(MA_DIR)/include/common-rules.make
+
+include /sonic/src/openbcm/Makefile.options
+
+CXX := g++
+CFLAGS += $(SDK_CFLAGS) -L$(SDK)/build/unix-user -L$(SDK)/build/unix-user/lib/ -L$(SDK)/build/unix-user/sdklt
+
+CPP_LDFLAGS = -L/usr/lib/x86_64-linux-gnu -lprotobuf -lgrpc -lgrpc++ -lfmt \
+	-Wl,--copy-dt-needed-entries
+
+CPP_FLAGS = -std=c++17
+CPP_FLAGS += -Iservices
+
+SDK_LIBS := $(wildcard $(SDK)/build/unix-user/sdklt/*.a)
+SDK_LIBS += $(SDK)/build/unix-user/libphymod.a
+SDK_LIBS += $(SDK)/build/unix-user/libsoc_phy.a
+SDK_LIBS += $(SDK)/build/unix-user/libsoccommon.a
+SDK_LIBS += $(SDK)/build/unix-user/libsoc_ltsw.a
+SDK_LIBS += $(SDK)/build/unix-user/src/sal/core/libc.o
+SDK_LIBS += $(SDK)/build/unix-user/src/sal/core/dpc.o
+SDK_LIBS += $(SDK)/build/unix-user/src/sal/core/lock.o
+SDK_LIBS += $(SDK)/build/unix-user/src/sal/core/unix/boot.o
+SDK_LIBS += $(SDK)/build/unix-user/src/sal/core/unix/thread.o
+SDK_LIBS += $(SDK)/build/unix-user/src/sal/core/unix/spl.o
+SDK_LIBS += $(SDK)/build/unix-user/src/shared/pbmp.o
+SDK_LIBS += $(SDK)/build/unix-user/src/shared/util.o
+SDK_LIBS += $(SDK)/build/unix-user/src/sal/core/unix/assert.o
+
+PROJ_NAME:=bcmasicd
+NET_MIDDLEWARE_DIR = /sonic/src/NetMiddleware
+GRPC_PROTO_DIR = $(NET_MIDDLEWARE_DIR)/api/net/proto
+GRPC_INC_FILES = $(shell find $(GRPC_PROTO_DIR) -name "*.h")
+GRPC_INC_DIRS = $(shell find $(GRPC_INC_FILES) -type d)
+GRPC_INC_FLAGS = $(addprefix -I,$(GRPC_INC_DIRS))
+GRPC_PROTO_LIB = $(shell find "$(NET_MIDDLEWARE_DIR)/build/api/net/proto" -name "*.a")
+GRPC_PROTO_LIB_DIR = $(shell find $(GRPC_PROTO_LIB) -type d)
+GRPC_PROTO_LIB_FLAGS = $(addprefix -L,$(GRPC_PROTO_LIB_DIR))
+
+CPP_LDFLAGS += -L/sonic/src/NetMiddleware/build/api/net/proto -lnet_grpc_proto
+
+# Include directories
+INC_DIRS = $(INC) $(shell find $(CPP_FILES) -type d)
+INC_DIRS += $(GRPC_INC_DIRS)
+INC_FLAGS = $(addprefix -I,$(INC_DIRS))
+INC_FLAGS += $(addprefix -I,$(GRPC_PROTO_DIR)/common)
+INC_FLAGS += $(addprefix -I,$(GRPC_PROTO_DIR)/interface)
+INC_FLAGS += $(addprefix -I,$(GRPC_PROTO_DIR)/lag)
+INC_FLAGS += $(addprefix -I,$(GRPC_PROTO_DIR)/port)
+INC_FLAGS += $(addprefix -I,$(GRPC_PROTO_DIR)/vlan)
+INC_FLAGS += $(GRPC_INC_FLAGS)
+
+S_OBJ = $(patsubst %.cpp, %.o, $(CPP_FILES))
+S_OBJ += lag_service.o
+
+all: $(PROJ_NAME)
+	echo Running application
+
+$(PROJ_NAME): $(S_OBJ) bcmasicd.o
+	echo Linking objects...
+	$(CXX) -o $@ $^ \
+	$(CPP_FLAGS) $(CPP_LDFLAGS) \
+	-L$(SDK_LIB_PATH) $(SDK_LDFLAGS) \
+	-Wl,--start-group -no-pie $(SDK_LIBS) -Wl,--end-group \
+	$(GRPC_PROTO_LIB_FLAGS) -lnet_grpc_proto \
+	-Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed \
+	-pthread -ldl -lrt -lm -lyaml
+
+lag_service.o: services/lag/lag_service.cpp services/lag/lag_service.hpp
+	echo Compiling and generating object $@ ...
+	$(CXX) -c $< $(CFLAGS) $(CPP_FLAGS) $(CPP_LDFLAGS) -o $@ \
+	$(INC_FLAGS) \
+	-Wno-error=write-strings -Wno-error=comment \
+	-I/sonic/src/OpenBCM/sdk-6.5.21/include \
+	-I/sonic/src/OpenBCM/sdk-6.5.21/systems/linux/kernel/modules/include \
+	-I/sonic/src/OpenBCM/sdk-6.5.21/systems/bde/linux/include
+
+clean:
+	echo Removing secondary things
+	rm -r -f objects $(S_OBJ) $(PROJ_NAME)
+	echo Done!
+
+bcmasicd.o: bcmasicd.cpp
+	$(CXX) $(CFLAGS) $(CPP_FLAGS) -c $< \
+	$(INC_FLAGS) \
+	-Wno-error=write-strings -Wno-error=comment \
+	-I/sonic/src/OpenBCM/sdk-6.5.21/include \
+	-I/sonic/src/OpenBCM/sdk-6.5.21/systems/linux/kernel/modules/include \
+	-I/sonic/src/OpenBCM/sdk-6.5.21/systems/bde/linux/include
+
+kdist_config: prep-deb-files
+
+
+kdist_clean: clean
+	dh_testdir
+	dh_clean
+
+
+configure: configure-stamp
+configure-stamp:
+	dh_testdir
+	# Add here commands to configure the package.
+
+	touch configure-stamp
+
+
+build-arch: configure-stamp  build-arch-stamp
+build-arch-stamp: bcmasicd
+	dh_testdir
+
+
+build-indep:  configure-stamp build-indep-stamp
+build-indep-stamp:
+	dh_testdir
+
+	touch $@
+
+build: build-arch
+
+clean:
+	dh_testdir
+	rm -f build-arch-stamp build-indep-stamp configure-stamp
+
+	dh_clean
+
+install: DH_OPTIONS=
+install: build
+	dh_testdir
+	dh_testroot
+	dh_prep
+	dh_installdirs
+	dh_install
+
+binary-indep: build install
+	dh_testdir -i
+	dh_testroot -i
+	dh_installchangelogs  -i
+	dh_installdocs -i
+	dh_installexamples -i
+	dh_installman -i
+	dh_link -i
+	dh_compress -i
+	dh_fixperms -i
+	dh_installdeb -i
+	dh_installdeb -i
+	dh_shlibdeps -i
+	dh_gencontrol -i
+	dh_md5sums -i
+	dh_builddeb -i --filename $(PKG_NAME)
+
+binary-arch: build install
+	dh_testdir -s
+	dh_testroot -s
+	dh_installdocs -s
+	dh_installexamples -s
+	dh_installmenu -s
+	dh_installmodules -s
+	dh_systemd_enable -s
+	dh_installinit -s
+	dh_systemd_start -s
+	dh_installcron -s
+	dh_installinfo -s
+	dh_installchangelogs  -s
+	dh_strip -s
+	dh_link -s
+	dh_compress -s
+	dh_fixperms -s
+	dh_makeshlibs -s
+	dh_installdeb -s
+	dh_shlibdeps -s
+	dh_gencontrol -s -- -n"$(PKG_NAME)"
+	dh_md5sums -s
+	dh_builddeb -s --filename $(PKG_NAME)
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install configure binary-modules kdist kdist_configure kdist_image kdist_clean

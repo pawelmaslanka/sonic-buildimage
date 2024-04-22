@@ -148,7 +148,13 @@ ENABLE_HOST_SERVICE_ON_START = y
 INCLUDE_RESTAPI = n
 
 # INCLUDE_FLEXCONFIG - build docker-sonic-flexconfig for configuring the switch using Configuration Management System
-INCLUDE_FLEXCONFIG = n
+INCLUDE_FLEXCONFIG = y
+
+# INCLUDE_NET_MIDDLEWARE - build docker-sonic-net-middleware for relay the request between configuration management system and data plane management system
+INCLUDE_NET_MIDDLEWARE = y
+
+# INCLUDE_BCMASICD - build docker-sonic-bcmasicd for control an Broadcom ASIC chip
+INCLUDE_BCMASICD = y
 
 # INCLUDE_NAT - build docker-nat for nat support
 INCLUDE_NAT = y
@@ -164,7 +170,7 @@ ENABLE_AUTO_TECH_SUPPORT = y
 
 # ENABLE_TRANSLIB_WRITE - Enable translib write/config operations via the gNMI interface.
 # Uncomment to enable:
-# ENABLE_TRANSLIB_WRITE = y
+ENABLE_TRANSLIB_WRITE = y
 
 # ENABLE_NATIVE_WRITE - Enable native write/config operations via the gNMI interface.
 # Uncomment to enable:

@@ -161,8 +161,22 @@ ifeq ($(SONIC_INCLUDE_RESTAPI),y)
 INCLUDE_RESTAPI = y
 endif
 
-ifeq ($(SONIC_INCLUDE_FLEXCONFIG),y)
+ifeq ($(SONIC_INCLUDE_FLEXCONFIG),n)
+INCLUDE_FLEXCONFIG = n
+else
 INCLUDE_FLEXCONFIG = y
+endif
+
+ifeq ($(SONIC_INCLUDE_NET_MIDDLEWARE),n)
+INCLUDE_NET_MIDDLEWARE = n
+else
+INCLUDE_NET_MIDDLEWARE = y
+endif
+
+ifeq ($(SONIC_INCLUDE_BCMASICD),n)
+INCLUDE_BCMASICD = n
+else
+INCLUDE_BCMASICD = y
 endif
 
 ifeq ($(SONIC_ENABLE_SYNCD_RPC),y)
@@ -420,6 +434,8 @@ $(info "INCLUDE_SYSTEM_TELEMETRY"        : "$(INCLUDE_SYSTEM_TELEMETRY)")
 $(info "ENABLE_HOST_SERVICE_ON_START"    : "$(ENABLE_HOST_SERVICE_ON_START)")
 $(info "INCLUDE_RESTAPI"                 : "$(INCLUDE_RESTAPI)")
 $(info "INCLUDE_FLEXCONFIG"              : "$(INCLUDE_FLEXCONFIG)")
+$(info "INCLUDE_NET_MIDDLEWARE"          : "$(INCLUDE_NET_MIDDLEWARE)")
+$(info "INCLUDE_BCMASICD"                : "$(INCLUDE_BCMASICD)")
 $(info "INCLUDE_SFLOW"                   : "$(INCLUDE_SFLOW)")
 $(info "ENABLE_SFLOW_DROPMON"            : "$(ENABLE_SFLOW_DROPMON)")
 $(info "INCLUDE_NAT"                     : "$(INCLUDE_NAT)")
@@ -1295,6 +1311,8 @@ $(addprefix $(TARGET_PATH)/, $(SONIC_INSTALLERS)) : $(TARGET_PATH)/% : \
 	export include_system_telemetry="$(INCLUDE_SYSTEM_TELEMETRY)"
 	export include_restapi="$(INCLUDE_RESTAPI)"
 	export include_flexconfig="$(INCLUDE_FLEXCONFIG)"
+	export include_net_middleware="$(INCLUDE_NET_MIDDLEWARE)"
+	export include_bcmasicd="$(INCLUDE_BCMASICD)"
 	export include_nat="$(INCLUDE_NAT)"
 	export include_p4rt="$(INCLUDE_P4RT)"
 	export include_sflow="$(INCLUDE_SFLOW)"
