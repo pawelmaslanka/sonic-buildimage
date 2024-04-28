@@ -19,72 +19,96 @@ KERNVERSION ?= 5.10.0-23-2
 platform=x86-smp_generic_64-2_6
 TARGET=unix-user
 
-SDKLT=/sonic/src/OpenBCM/sdk-6.5.21/libs/sdklt
-SDK=/sonic/src/OpenBCM/sdk-6.5.21
+SDK_VER = 6.5.27
+
+KERNLDIR = /sonic/src/sonic-linux-kernel/linux-5.10.179
+
+EXTRA_CFLAGS = -I$(KERNLDIR) -lc -isystem $(SYSINC) -Iinclude -I$(KERNLDIR)/debian/linux-headers-5.10.0-23-2-amd64/usr/src/linux-headers-5.10.0-23-2-amd64/include -I$(KERNLDIR)/debian/linux-headers-5.10.0-23-2-amd64/usr/src/linux-headers-5.10.0-23-2-amd64/arch/x86/include/generated/uapi -I$(KERNLDIR)/arch/x86/include -I$(KERNLDIR)/debian/linux-headers-5.10.0-23-2-amd64/usr/src/linux-headers-5.10.0-23-2-amd64/arch/x86/include/generated -I$(KERNLDIR)/arch/x86/include/uapi -I$(KERNLDIR)/include -I$(KERNLDIR)/debian/linux-headers-5.10.0-23-2-amd64/usr/src/linux-headers-5.10.0-23-2-amd64/include/generated -I$(KERNLDIR)/include/uapi -include /sonic/src/sonic-linux-kernel/linux-5.10.179/debian/linux-headers-5.10.0-23-2-amd64/usr/src/linux-headers-5.10.0-23-2-amd64/include/generated/autoconf.h -D__KERNEL__ -DNDEBUG -Wundef -Wno-error=unused-value -Wno-error=cpp -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Wno-format-security -O2 -m64 -mtune=generic -mno-red-zone -mcmodel=kernel -funit-at-a-time -fstack-protector -DCONFIG_AS_CFI=1 -DCONFIG_AS_CFI_SIGNAL_FRAME=1 -pipe -Wno-sign-compare -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fno-dwarf2-cfi-asm -fno-builtin -Wno-int-to-pointer-cast -fno-pie -D\"KBUILD_STR(s)=\#s\"
+EXTRA_KFLAGS = "-I$(KERNLDIR) -lc -isystem $(SYSINC) -Iinclude -I$(KERNLDIR)/debian/linux-headers-5.10.0-23-2-amd64/usr/src/linux-headers-5.10.0-23-2-amd64/include -I$(KERNLDIR)/debian/linux-headers-5.10.0-23-2-amd64/usr/src/linux-headers-5.10.0-23-2-amd64/arch/x86/include/generated/uapi -I$(KERNLDIR)/arch/x86/include -I$(KERNLDIR)/debian/linux-headers-5.10.0-23-2-amd64/usr/src/linux-headers-5.10.0-23-2-amd64/arch/x86/include/generated -I$(KERNLDIR)/arch/x86/include/uapi -I$(KERNLDIR)/include -I$(KERNLDIR)/debian/linux-headers-5.10.0-23-2-amd64/usr/src/linux-headers-5.10.0-23-2-amd64/include/generated -I$(KERNLDIR)/include/uapi -include /sonic/src/sonic-linux-kernel/linux-5.10.179/debian/linux-headers-5.10.0-23-2-amd64/usr/src/linux-headers-5.10.0-23-2-amd64/include/generated/autoconf.h -D__KERNEL__ -DNDEBUG -Wundef -Wno-error=unused-value -Wno-error=cpp -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Wno-format-security -O2 -m64 -mtune=generic -mno-red-zone -mcmodel=kernel -funit-at-a-time -fstack-protector -DCONFIG_AS_CFI=1 -DCONFIG_AS_CFI_SIGNAL_FRAME=1 -pipe -Wno-sign-compare -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fno-dwarf2-cfi-asm -fno-builtin -Wno-int-to-pointer-cast -fno-pie"
+EXTRA_KERNEL_FLAGS = -I$(KERNLDIR) -Iinclude -I$(KERNLDIR)/debian/linux-headers-5.10.0-23-2-amd64/usr/src/linux-headers-5.10.0-23-2-amd64/include -I$(KERNLDIR)/debian/linux-headers-5.10.0-23-2-amd64/usr/src/linux-headers-5.10.0-23-2-amd64/arch/x86/include/generated/uapi -I$(KERNLDIR)/arch/x86/include -I$(KERNLDIR)/debian/linux-headers-5.10.0-23-2-amd64/usr/src/linux-headers-5.10.0-23-2-amd64/arch/x86/include/generated -I$(KERNLDIR)/arch/x86/include/uapi -I$(KERNLDIR)/include -I$(KERNLDIR)/debian/linux-headers-5.10.0-23-2-amd64/usr/src/linux-headers-5.10.0-23-2-amd64/include/generated -I$(KERNLDIR)/include/uapi
+
+SDK=/sonic/src/OpenBCM/sdk-$(SDK_VER)
 
 -include $(MA_DIR)/include/generic.make
 -include $(MA_DIR)/include/common-rules.make
 
-include $(SDK)/make/Make.config
+# include $(SDK)/make/Make.config
 
-sdk_build: sdk sdklt kernel_module
+sdk_build: sdk kernel_module
 
 sdk:
 	echo "Build SDK libs"
-	LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
-	BUILD_SDKLT=1 NO_SAL_APPL=1 BUILD_PHYMOD=1 LTSW_CHIPS=1 SYSOK=1 LINUX_MAKE_USER=1 \
-	YAML=/usr \
-	KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
-	KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
-	$(MAKE) -f $(SDK)/make/Make.libsum SDK=$(SDK) LKM_BLDDIR=$(SDK)/kbuild TARGET=unix-user platform=x86-smp_generic_64-2_6
 
-	SDK=/sonic/src/OpenBCM/sdk-6.5.21 \
-	LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
-	BUILD_SDKLT=1 NO_SAL_APPL=1 BUILD_PHYMOD=1 LTSW_CHIPS=1 SYSOK=1 LINUX_MAKE_USER=1 \
-	YAML=/usr \
-	KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
-	KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
-	KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
-	$(MAKE) -C $(SDK) CFLAGS="$(CFLAGS) -I$(SDK)/systems/bde/linux/include -I$(SDK)/src/appl/cint" LKM_BLDDIR=$(SDK)/kbuild TARGET=unix-user platform=x86-smp_generic_64-2_6
-
-	LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
-	BUILD_SDKLT=1 NO_SAL_APPL=1 BUILD_PHYMOD=1 LTSW_CHIPS=1 SYSOK=1 LINUX_MAKE_USER=1 \
-	YAML=/usr \
+	SDK=/sonic/src/OpenBCM/sdk-$(SDK_VER) \
+	PORTMOD_SUPPORT=1 \
+	NO_PRECOMPILED_MODULE=1 \
+	ESW_CHIPS=1 \
+	KERNBLDDIR=$(KERNLDIR) \
+	BUILD_KNET_CB=1 \
+	ESW_CHIPS=1 BCM_PTL_SPT=1 BCM_56960_A0=1  \
+	FEATURE_LIST="PTP CINT L3 I2C MEM_SCAN EDITLINE BCM_SAL_PROFILE CUSTOMER TEST CHASSIS MSTP RCPU PTP KNET FCMAP ATPTRANS_SOCKET FLOWTRACKER COLLECTOR KNETSYNC" \
+	CFGFLAGS="-DALPM_ENABLE -DBCM_WARM_BOOT_SUPPORT -DBCM_WARM_BOOT_SUPPORT_SW_DUMP -DSRC_SOC_COMMON_ACTIVATE_UNUSED -Wno-error -UBCM_PLATFORM_STRING -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=implicit-function-declaration -Wno-error=cpp -Wno-error=format-overflow= -Wno-error=maybe-uninitialized -Wno-error=stringop-truncation -Wno-error=stringop-overflow= -Wno-error=zero-length-bounds -Wno-zero-length-bounds -Wno-error=array-bounds -Wno-array-bounds -Wno-error=unused-function -Wno-unused-function -Wno-error=restrict -Wno-restrict -Wno-error=address-of-packed-member -Wno-address-of-packed-member" \
 	KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
 	KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
 	KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
-	$(MAKE) -C $(SDK) TARGET=$(TARGET) LKM_BLDDIR=$(SDK)/kbuild TARGET=unix-user platform=x86-smp_generic_64-2_6
+	$(MAKE) -C $(SDK) CFLAGS="$(CFLAGS) -I/sonic/src/openbcm/fix -include int32_t_undefined.h -I$(SDK)/systems/bde/linux/include -I$(SDK)/src/appl/cint -Wno-error -DALPM_ENABLE -DSRC_SOC_COMMON_ACTIVATE_UNUSED -UBCM_PLATFORM_STRING -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=implicit-function-declaration -Wno-error=cpp -Wno-error=format-overflow= -Wno-error=maybe-uninitialized -Wno-error=stringop-truncation -Wno-error=stringop-overflow= -Wno-error=zero-length-bounds -Wno-zero-length-bounds -Wno-error=array-bounds -Wno-array-bounds -Wno-error=unused-function -Wno-unused-function -Wno-error=restrict -Wno-restrict -Wno-error=address-of-packed-member -Wno-address-of-packed-member -DBCM_WARM_BOOT_SUPPORT -DBCM_WARM_BOOT_SUPPORT_SW_DUMP" LKM_BLDDIR=$(SDK)/kbuild TARGET=unix-user platform=x86-smp_generic_64-2_6
 
+	# SDK=/sonic/src/OpenBCM/sdk-$(SDK_VER) \
+	# LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
+	# SYSOK=1 LINUX_MAKE_USER=1 \
+	# YAML=/usr \
+	# ESW_CHIPS=1 BCM_56960_A0=1  \
+	# EXTRA_CFLAGS=$(EXTRA_KFLAGS) \
+	# KFLAGS=$(EXTRA_KFLAGS) \
+	# FEATURE_LIST="PTP CINT L3 I2C MEM_SCAN EDITLINE BCM_SAL_PROFILE CUSTOMER TEST CHASSIS MSTP RCPU PTP KNET FCMAP ATPTRANS_SOCKET FLOWTRACKER COLLECTOR KNETSYNC" \
+	# CFGFLAGS="-DALPM_ENABLE -DBCM_WARM_BOOT_SUPPORT -DBCM_WARM_BOOT_SUPPORT_SW_DUMP -DSRC_SOC_COMMON_ACTIVATE_UNUSED -Wno-error -UBCM_PLATFORM_STRING -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=implicit-function-declaration -Wno-error=cpp -Wno-error=format-overflow= -Wno-error=maybe-uninitialized -Wno-error=stringop-truncation -Wno-error=stringop-overflow= -Wno-error=zero-length-bounds -Wno-zero-length-bounds -Wno-error=array-bounds -Wno-array-bounds -Wno-error=unused-function -Wno-unused-function -Wno-error=restrict -Wno-restrict -Wno-error=address-of-packed-member -Wno-address-of-packed-member" \
+	# $(MAKE) -C $(SDK)/systems/linux/user/opennsa CFLAGS="$(CFLAGS) -I$(SDK)/include -I$(SDK)/systems/bde/linux/include -I$(SDK)/systems/linux/kernel/modules/include -I$(SDK)/systems/bde/shared/include -I$(SDK)/systems/bde/linux/include -I$(SDK)/src/appl/cint -include $(SDK)/include/soc/mcm/enum_types.h -include $(SDK)/include/soc/mcm/enum_max.h -include $(SDK)/include/soc/mcm/allenum.h -Wno-error -DALPM_ENABLE -DSRC_SOC_COMMON_ACTIVATE_UNUSED -UBCM_PLATFORM_STRING -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=implicit-function-declaration -Wno-error=cpp -Wno-error=format-overflow= -Wno-error=maybe-uninitialized -Wno-error=stringop-truncation -Wno-error=stringop-overflow= -Wno-error=zero-length-bounds -Wno-zero-length-bounds -Wno-error=array-bounds -Wno-array-bounds -Wno-error=unused-function -Wno-unused-function -Wno-error=restrict -Wno-restrict -Wno-error=address-of-packed-member -Wno-address-of-packed-member -DBCM_WARM_BOOT_SUPPORT -DBCM_WARM_BOOT_SUPPORT_SW_DUMP" LKM_BLDDIR=$(SDK)/kbuild TARGET=unix-user platform=x86-smp_generic_64-2_6
 
-sdklt:
-	echo "Build SDKLT libs"
-	LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
-	BUILD_SDKLT=1 NO_SAL_APPL=1 BUILD_PHYMOD=1 LTSW_CHIPS=1 SYSOK=1 LINUX_MAKE_USER=1 \
-	YAML=/usr \
-	KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
-	KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
-	KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
-	$(MAKE) -C $(SDKLT) SDK=$(SDKLT) LKM_BLDDIR=$(SDK)/kbuild LKM_BLDDIR=$(SDK)/kbuild TARGET=unix-user platform=x86-smp_generic_64-2_6
+	# SDK=/sonic/src/OpenBCM/sdk-$(SDK_VER) \
+	# BUILD_KNET_CB=1 \
+	# BCM_PTL_SPT=1 ESW_CHIPS=1 BCM_56960_A0=1  \
+	# EXTRA_CFLAGS=$(EXTRA_KFLAGS) \
+	# KFLAGS=$(EXTRA_KFLAGS) \
+	# OPT_CFLAGS=$(EXTRA_KFLAGS) \
+	# FEATURE_LIST="PTP CINT L3 I2C MEM_SCAN EDITLINE BCM_SAL_PROFILE CUSTOMER TEST CHASSIS MSTP RCPU PTP KNET FCMAP ATPTRANS_SOCKET FLOWTRACKER COLLECTOR KNETSYNC" \
+	# CFGFLAGS="-DALPM_ENABLE -DBCM_WARM_BOOT_SUPPORT -DBCM_WARM_BOOT_SUPPORT_SW_DUMP -DSRC_SOC_COMMON_ACTIVATE_UNUSED -Wno-error -UBCM_PLATFORM_STRING -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=implicit-function-declaration -Wno-error=cpp -Wno-error=format-overflow= -Wno-error=maybe-uninitialized -Wno-error=stringop-truncation -Wno-error=stringop-overflow= -Wno-error=zero-length-bounds -Wno-zero-length-bounds -Wno-error=array-bounds -Wno-array-bounds -Wno-error=unused-function -Wno-unused-function -Wno-error=restrict -Wno-restrict -Wno-error=address-of-packed-member -Wno-address-of-packed-member" \
+	# $(MAKE) -C $(SDK)/systems/linux/user/common mod CFLAGS="$(CFLAGS) -I$(SDK)/include -I$(SDK)/systems/bde/linux/include -I$(SDK)/systems/linux/kernel/modules/include -I$(SDK)/systems/bde/shared/include -I$(SDK)/systems/bde/linux/include -I$(SDK)/src/appl/cint -include $(SDK)/include/soc/mcm/enum_types.h -include $(SDK)/include/soc/mcm/enum_max.h -include $(SDK)/include/soc/mcm/allenum.h -Wno-error -DALPM_ENABLE -DSRC_SOC_COMMON_ACTIVATE_UNUSED -UBCM_PLATFORM_STRING -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=implicit-function-declaration -Wno-error=cpp -Wno-error=format-overflow= -Wno-error=maybe-uninitialized -Wno-error=stringop-truncation -Wno-error=stringop-overflow= -Wno-error=zero-length-bounds -Wno-zero-length-bounds -Wno-error=array-bounds -Wno-array-bounds -Wno-error=unused-function -Wno-unused-function -Wno-error=restrict -Wno-restrict -Wno-error=address-of-packed-member -Wno-address-of-packed-member -DBCM_WARM_BOOT_SUPPORT -DBCM_WARM_BOOT_SUPPORT_SW_DUMP $(EXTRA_KERNEL_FLAGS)" LKM_BLDDIR=$(SDK)/kbuild TARGET=unix-user platform=x86-smp_generic_64-2_6
+
 
 kernel_module:
-	echo "Build SDKLT's kernel_modules"
-	LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
-	BUILD_SDKLT=1 NO_SAL_APPL=1 BUILD_PHYMOD=1 LTSW_CHIPS=1 SYSOK=1 LINUX_MAKE_USER=1 \
-	YAML=/usr \
-	KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
-	KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
-	KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
-	$(MAKE) -C $(SDKLT)/linux/bde SDK=$(SDKLT) LKM_BLDDIR=$(SDK)/kbuild TARGET=unix-user platform=x86-smp_generic_64-2_6
+	echo "Build SDK's kernel_modules"
+	mkdir -p $(SDK)/build/linux-x86-smp_generic_64-2_6/
 
-	LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
-	BUILD_SDKLT=1 NO_SAL_APPL=1 BUILD_PHYMOD=1 LTSW_CHIPS=1 SYSOK=1 LINUX_MAKE_USER=1 \
-	YAML=/usr \
-	KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
-	KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
-	KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
-	$(MAKE) -C $(SDKLT)/linux/knet SDK=$(SDKLT) LKM_BLDDIR=$(SDK)/kbuild TARGET=unix-user platform=x86-smp_generic_64-2_6
-	cp $(SDK)/kbuild/linux_ngbde.ko /sonic/src/openbcm
-	cp $(SDK)/kbuild/linux_ngknet.ko /sonic/src/openbcm
+	NO_PRECOMPILED_MODULE=1 \
+	ESW_CHIPS=1 \
+	KERNBLDDIR=$(KERNLDIR) \
+	KFLAGS="-D\"KBUILD_MODNAME=KBUILD_STR(linux-kernel-bde)\"" \
+	$(MAKE) -C $(SDK)/systems/linux/kernel/modules/shared CFLAGS="$(CFLAGS) -D\"KBUILD_MODNAME=KBUILD_STR(linux-kernel-bde)\" -I$(SDK)/include -I$(SDK)/systems/bde/linux/include -I$(SDK)/systems/linux/kernel/modules/include -I$(SDK)/systems/bde/shared/include" SDK=$(SDK) LKM_BLDDIR=$(SDK)/kbuild TARGET=linux-x86-smp_generic_64-2_6 platform=x86-smp_generic_64-2_6 EXTRA_CFLAGS="$(EXTRA_CFLAGS)"
+
+	ar rcs $(SDK)/build/linux-x86-smp_generic_64-2_6/libkern.a $(SDK)/build/linux-x86-smp_generic_64-2_6/systems/linux/kernel/modules/shared/*.o
+
+	# Copy missing tools
+	cp -Rf /usr/lib/linux-kbuild-5.10/scripts/mod/modpost $(KERNLDIR)/scripts/mod/
+	cp -Rf /usr/lib/linux-kbuild-5.10/scripts/basic/fixdep $(KERNLDIR)/scripts/basic/
+
+	ESW_CHIPS=1 \
+	KERNBLDDIR=$(KERNLDIR) \
+	KFLAGS="-D\"KBUILD_MODNAME=KBUILD_STR(linux-kernel-bde)\"" \
+	$(MAKE) -C $(SDK)/systems/bde/linux/kernel CFLAGS="$(CFLAGS) -D\"KBUILD_MODNAME=KBUILD_STR(linux-kernel-bde)\" -I$(SDK)/include -I$(SDK)/systems/bde/linux/include -I$(SDK)/systems/linux/kernel/modules/include -I$(SDK)/systems/bde/shared/include" SDK=$(SDK) LKM_BLDDIR=$(SDK)/kbuild TARGET=linux-x86-smp_generic_64-2_6 platform=x86-smp_generic_64-2_6 EXTRA_CFLAGS="$(EXTRA_CFLAGS)"
+
+	# FIXME in the same way like above
+	ESW_CHIPS=1 \
+	KERNBLDDIR=$(KERNLDIR) \
+	KFLAGS="-D\"KBUILD_MODNAME=KBUILD_STR(linux-user-bde)\"" \
+	$(MAKE) -C $(SDK)/systems/bde/linux/user/kernel CFLAGS="$(CFLAGS) -D\"KBUILD_MODNAME=KBUILD_STR(linux-user-bde)\" -I$(SDK)/include -I$(SDK)/systems/bde/linux/include -I$(SDK)/systems/linux/kernel/modules/include -I$(SDK)/systems/bde/shared/include" SDK=$(SDK) LKM_BLDDIR=$(SDK)/kbuild TARGET=linux-x86-smp_generic_64-2_6 platform=x86-smp_generic_64-2_6 EXTRA_CFLAGS="$(EXTRA_CFLAGS)"
+
+	# # This is userspace module
+	# $(MAKE) -C $(SDK)/systems/bde/linux/user CFLAGS="$(CFLAGS) -I$(SDK)/include -I$(SDK)/systems/bde/linux/include -I$(SDK)/systems/linux/kernel/modules/include -I$(SDK)/systems/bde/shared/include -include $(SDK)/include/soc/mcm/enum_types.h -include $(SDK)/include/soc/mcm/enum_max.h -include $(SDK)/include/soc/mcm/allenum.h" SDK=$(SDK) LKM_BLDDIR=$(SDK)/kbuild TARGET=unix-user platform=x86-smp_generic_64-2_6
+
+	ESW_CHIPS=1 \
+	KERNBLDDIR=$(KERNLDIR) \
+	KFLAGS="-D\"KBUILD_MODNAME=KBUILD_STR(linux-bcm-knet)\"" \
+	$(MAKE) -C $(SDK)/systems/linux/kernel/modules/bcm-knet CFLAGS="$(CFLAGS) -D\"KBUILD_MODNAME=KBUILD_STR(linux-bcm-knet)\" -I$(SDK)/include -I$(SDK)/systems/bde/linux/include -I$(SDK)/systems/linux/kernel/modules/include -I$(SDK)/systems/bde/shared/include" SDK=$(SDK) LKM_BLDDIR=$(SDK)/kbuild TARGET=linux-x86-smp_generic_64-2_6 platform=x86-smp_generic_64-2_6 EXTRA_CFLAGS="$(EXTRA_CFLAGS)"
 
 sdk_env:
 	echo "Prepare SDK env"
@@ -102,60 +126,60 @@ sdk_env:
 	cd /; sudo cp /usr/src/linux-headers-$(KERNVERSION)-amd64/Module.symvers /usr/src/linux-headers-$(KERNVERSION)-common/Module.symvers 2>/dev/null || true
 	mkdir -p $(SDK)/kbuild
 
-	SDK=/sonic/src/OpenBCM/sdk-6.5.21 \
+	SDK=/sonic/src/OpenBCM/sdk-$(SDK_VER) \
 	LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
-	BUILD_SDKLT=1 NO_SAL_APPL=1 BUILD_PHYMOD=1 LTSW_CHIPS=1 SYSOK=1 LINUX_MAKE_USER=1 \
+	BUILD_PHYMOD=1 SYSOK=1 LINUX_MAKE_USER=1 \
 	YAML=/usr \
 	KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
 	KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
 	KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
-	$(MAKE) -C $(SDK)/systems/bde/linux/user CFLAGS="$(CFLAGS) -I$(SDK)/systems/bde/linux/include" LKM_BLDDIR=$(SDK)/kbuild TARGET=unix-user platform=x86-smp_generic_64-2_6
+	$(MAKE) -C $(SDK)/systems/bde/linux/user CFLAGS="$(CFLAGS) -I$(SDK)/include -I$(SDK)/systems/bde/linux/include -I$(SDK)/systems/linux/kernel/modules/include -I$(SDK)/systems/bde/shared/include -include $(SDK)/include/soc/mcm/enum_types.h -include $(SDK)/include/soc/mcm/enum_max.h -include $(SDK)/include/soc/mcm/allenum.h" SDK=$(SDK) LKM_BLDDIR=$(SDK)/kbuild TARGET=unix-user platform=x86-smp_generic_64-2_6
 
 kdist_config: prep-deb-files
 
 kdist_clean: clean
 	dh_testdir
 	dh_clean
-	SDK=/sonic/src/OpenBCM/sdk-6.5.21 \
-	LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
-	BUILD_SDKLT=1 NO_SAL_APPL=1 BUILD_PHYMOD=1 LTSW_CHIPS=1 SYSOK=1 LINUX_MAKE_USER=1 \
-	YAML=/usr \
-	KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
-	KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
-	KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
-	$(MAKE) -C $(SDK)/systems/bde/linux/user clean CFLAGS="$(CFLAGS) -I$(SDK)/systems/bde/linux/include" LKM_BLDDIR=$(SDK)/kbuild TARGET=unix-user platform=x86-smp_generic_64-2_6
+	# SDK=/sonic/src/OpenBCM/sdk-$(SDK_VER) \
+	# LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
+	# NO_SAL_APPL=1 BUILD_PHYMOD=1 SYSOK=1 LINUX_MAKE_USER=1 \
+	# YAML=/usr \
+	# KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	# KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
+	# KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	# $(MAKE) -C $(SDK)/systems/bde/linux/user clean CFLAGS="$(CFLAGS) -I$(SDK)/systems/bde/linux/include" LKM_BLDDIR=$(SDK)/kbuild TARGET=unix-user platform=x86-smp_generic_64-2_6
 
-	LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
-	BUILD_SDKLT=1 NO_SAL_APPL=1 BUILD_PHYMOD=1 LTSW_CHIPS=1 SYSOK=1 LINUX_MAKE_USER=1 \
-	YAML=/usr \
-	KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
-	KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
-	KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
-	$(MAKE) -C $(SDKLT)/linux/knet clean SDK=$(SDKLT) LKM_BLDDIR=$(SDK)/kbuild TARGET=unix-user platform=x86-smp_generic_64-2_6
+	# # LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
+	# # BUILD_SDKLT=1 NO_SAL_APPL=1 BUILD_PHYMOD=1 LTSW_CHIPS=1 SYSOK=1 LINUX_MAKE_USER=1 \
+	# # YAML=/usr \
+	# # KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	# # KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
+	# # KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	# # $(MAKE) -C $(SDKLT)/linux/knet clean SDK=$(SDKLT) LKM_BLDDIR=$(SDK)/kbuild TARGET=unix-user platform=x86-smp_generic_64-2_6
 
-	LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
-	BUILD_SDKLT=1 NO_SAL_APPL=1 BUILD_PHYMOD=1 LTSW_CHIPS=1 SYSOK=1 LINUX_MAKE_USER=1 \
-	YAML=/usr \
-	KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
-	KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
-	KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
-	$(MAKE) -C $(SDKLT)/linux/bde clean SDK=$(SDKLT) LKM_BLDDIR=$(SDK)/kbuild TARGET=unix-user platform=x86-smp_generic_64-2_6
+	# # LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
+	# # BUILD_SDKLT=1 NO_SAL_APPL=1 BUILD_PHYMOD=1 LTSW_CHIPS=1 SYSOK=1 LINUX_MAKE_USER=1 \
+	# # YAML=/usr \
+	# # KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	# # KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
+	# # KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	# # $(MAKE) -C $(SDKLT)/linux/bde clean SDK=$(SDKLT) LKM_BLDDIR=$(SDK)/kbuild TARGET=unix-user platform=x86-smp_generic_64-2_6
 
-	LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
-	BUILD_SDKLT=1 NO_SAL_APPL=1 BUILD_PHYMOD=1 LTSW_CHIPS=1 SYSOK=1 LINUX_MAKE_USER=1 \
-	YAML=/usr \
-	KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
-	KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
-	KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
-	$(MAKE) -C $(SDKLT) clean SDK=$(SDKLT) LKM_BLDDIR=$(SDK)/kbuild LKM_BLDDIR=$(SDK)/kbuild TARGET=unix-user platform=x86-smp_generic_64-2_6
+	# # LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
+	# # BUILD_SDKLT=1 NO_SAL_APPL=1 BUILD_PHYMOD=1 LTSW_CHIPS=1 SYSOK=1 LINUX_MAKE_USER=1 \
+	# # YAML=/usr \
+	# # KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	# # KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
+	# # KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	# # $(MAKE) -C $(SDKLT) clean SDK=$(SDKLT) LKM_BLDDIR=$(SDK)/kbuild LKM_BLDDIR=$(SDK)/kbuild TARGET=unix-user platform=x86-smp_generic_64-2_6
 
-	LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
-	BUILD_SDKLT=1 NO_SAL_APPL=1 BUILD_PHYMOD=1 LTSW_CHIPS=1 SYSOK=1 LINUX_MAKE_USER=1 \
-	YAML=/usr \
-	KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
-	KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
-	KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
-	$(MAKE) -C $(SDK) clean TARGET=$(TARGET) LKM_BLDDIR=$(SDK)/kbuild TARGET=unix-user platform=x86-smp_generic_64-2_6
+	# LINUX_UAPI_SPLIT=1 DEBIAN_LINUX_HEADER=1 BUILD_KNET_CB=1 \
+	# NO_SAL_APPL=1 BUILD_PHYMOD=1 SYSOK=1 LINUX_MAKE_USER=1 \
+	# YAML=/usr \
+	# KERNDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	# KERNEL_SRC=/usr/src/linux-headers-$(KERNVERSION)-amd64 \
+	# KDIR=/usr/src/linux-headers-$(KERNVERSION)-common \
+	# $(MAKE) -C $(SDK) clean TARGET=$(TARGET) LKM_BLDDIR=$(SDK)/kbuild TARGET=unix-user platform=x86-smp_generic_64-2_6
 
 configure: configure-stamp
 configure-stamp:
