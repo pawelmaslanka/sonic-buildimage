@@ -125,3 +125,6 @@
 [submodule "platform/marvell-arm64/mrvl-prestera"]
 	path = platform/marvell-arm64/mrvl-prestera
 	url = https://github.com/Marvell-switching/mrvl-prestera.git
+[submodule "src/OpenBCM"]
+	path = src/OpenBCM
+	url = https://github.com/Broadcom-Network-Switching-Software/OpenBCM.git

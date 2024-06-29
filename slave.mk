@@ -173,6 +173,12 @@ else
 INCLUDE_NET_MIDDLEWARE = y
 endif
 
+ifeq ($(SONIC_INCLUDE_BCM_ASIC_SERVICE),n)
+INCLUDE_BCM_ASIC_SERVICE = n
+else
+INCLUDE_BCM_ASIC_SERVICE = y
+endif
+
 ifeq ($(SONIC_INCLUDE_BCMASICD),n)
 INCLUDE_BCMASICD = n
 else
@@ -435,6 +441,7 @@ $(info "ENABLE_HOST_SERVICE_ON_START"    : "$(ENABLE_HOST_SERVICE_ON_START)")
 $(info "INCLUDE_RESTAPI"                 : "$(INCLUDE_RESTAPI)")
 $(info "INCLUDE_FLEXCONFIG"              : "$(INCLUDE_FLEXCONFIG)")
 $(info "INCLUDE_NET_MIDDLEWARE"          : "$(INCLUDE_NET_MIDDLEWARE)")
+$(info "INCLUDE_BCM_ASIC_SERVICE"        : "$(INCLUDE_BCM_ASIC_SERVICE)")
 $(info "INCLUDE_BCMASICD"                : "$(INCLUDE_BCMASICD)")
 $(info "INCLUDE_SFLOW"                   : "$(INCLUDE_SFLOW)")
 $(info "ENABLE_SFLOW_DROPMON"            : "$(ENABLE_SFLOW_DROPMON)")
@@ -1312,6 +1319,7 @@ $(addprefix $(TARGET_PATH)/, $(SONIC_INSTALLERS)) : $(TARGET_PATH)/% : \
 	export include_restapi="$(INCLUDE_RESTAPI)"
 	export include_flexconfig="$(INCLUDE_FLEXCONFIG)"
 	export include_net_middleware="$(INCLUDE_NET_MIDDLEWARE)"
+	export include_bcm_asic_service="$(INCLUDE_BCM_ASIC_SERVICE)"
 	export include_bcmasicd="$(INCLUDE_BCMASICD)"
 	export include_nat="$(INCLUDE_NAT)"
 	export include_p4rt="$(INCLUDE_P4RT)"

@@ -1,2 +1,2 @@
-linux_ngbde.ko lib/modules/5.10.0-23-2-amd64/extra
-linux_ngknet.ko lib/modules/5.10.0-23-2-amd64/extra
+# linux_ngbde.ko lib/modules/5.10.0-23-2-amd64/extra
+# linux_ngknet.ko lib/modules/5.10.0-23-2-amd64/extra

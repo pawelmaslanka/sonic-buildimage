@@ -18,9 +18,9 @@ SONIC_INSTALL_DOCKER_IMAGES += $(DOCKER_NET_MIDDLEWARE)
 endif
 
 $(DOCKER_NET_MIDDLEWARE)_CONTAINER_NAME = net-middleware
-$(DOCKER_NET_MIDDLEWARE)_RUN_OPT += -t
+$(DOCKER_NET_MIDDLEWARE)_RUN_OPT += -t --cap-add NET_ADMIN --privileged
 $(DOCKER_NET_MIDDLEWARE)_RUN_OPT += -v /var/run/redis/redis.sock:/var/run/redis/redis.sock
 $(DOCKER_NET_MIDDLEWARE)_RUN_OPT += -v /etc/sonic/credentials:/etc/sonic/credentials:ro
-$(DOCKER_NET_MIDDLEWARE)_RUN_OPT += --network=host 
+$(DOCKER_NET_MIDDLEWARE)_RUN_OPT += --network=host -p=8000:8000/tcp
 
 $(DOCKER_NET_MIDDLEWARE)_FILES += $(SUPERVISOR_PROC_EXIT_LISTENER_SCRIPT)

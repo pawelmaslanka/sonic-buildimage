@@ -1,0 +1,9 @@
+
+SPATH       := $($(BCM_ASIC_SERVICE)_SRC_PATH)
+DEP_FILES   := $(SONIC_COMMON_FILES_LIST) rules/bcm-asic-service.mk rules/bcm-asic-service.dep   
+DEP_FILES   += $(SONIC_COMMON_BASE_FILES_LIST)
+DEP_FILES   += $(shell git ls-files $(SPATH))
+
+$(BCM_ASIC_SERVICE)_CACHE_MODE  := GIT_CONTENT_SHA 
+$(BCM_ASIC_SERVICE)_DEP_FLAGS   := $(SONIC_COMMON_FLAGS_LIST)
+$(BCM_ASIC_SERVICE)_DEP_FILES   := $(DEP_FILES)
