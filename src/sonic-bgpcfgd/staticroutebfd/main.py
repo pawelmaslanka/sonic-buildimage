@@ -66,6 +66,9 @@ def static_route_split_key(key):
     :param key: key to split
     :return: valid, vrf name extracted from the key, ip prefix extracted from the key
     """
+    if key is None or len(key) == 0:
+        return False, "", ""
+
     l = tuple(key.split('|'))
 
     if len(l) == 1:
@@ -373,8 +376,13 @@ class StaticRouteBfd(object):
 
         valid, is_ipv4, ip = check_ip(ip_prefix)
         if not valid:
-            log_err("invalid ip prefix for static route: ", key)
+            log_err("invalid ip prefix for static route: '%s'"%(key))
             return True
+
+        #use lower case if there is letter in IPv6 address string
+        if 'nexthop' in data:
+            nh = data['nexthop']
+            data['nexthop'] = nh.lower()
 
         arg_list  = lambda v: [x.strip() for x in v.split(',')] if len(v.strip()) != 0 else None
         bfd_field = arg_list(data['bfd']) if 'bfd' in data else ["false"]
