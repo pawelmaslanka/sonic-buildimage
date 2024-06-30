@@ -156,8 +156,8 @@ INCLUDE_FLEXCONFIG = y
 # INCLUDE_NET_MIDDLEWARE - build docker-sonic-net-middleware for relay the request between configuration management system and data plane management system
 INCLUDE_NET_MIDDLEWARE = y
 
-# INCLUDE_BCMASICD - build docker-sonic-bcmasicd for control an Broadcom ASIC chip
-INCLUDE_BCMASICD = y
+# INCLUDE_BCM_ASIC_SERVICE - build docker-sonic-bcmasicd for control an Broadcom ASIC chip
+INCLUDE_BCM_ASIC_SERVICE = y
 
 # INCLUDE_NAT - build docker-nat for nat support
 INCLUDE_NAT = y
