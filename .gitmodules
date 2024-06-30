@@ -128,3 +128,6 @@
 [submodule "src/OpenBCM"]
 	path = src/OpenBCM
 	url = https://github.com/Broadcom-Network-Switching-Software/OpenBCM.git
+[submodule "src/json-schema-validator"]
+	path = src/json-schema-validator
+	url = https://github.com/pawelmaslanka/json-schema-validator.git
