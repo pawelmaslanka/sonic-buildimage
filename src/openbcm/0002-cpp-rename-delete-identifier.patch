@@ -1,0 +1,36 @@
+diff -Naur sdk-6.5.21.origin/libs/sdklt/bcmltd/include/bcmltd/bcmltd_handler.h sdk-6.5.21.new/libs/sdklt/bcmltd/include/bcmltd/bcmltd_handler.h
+--- sdk-6.5.21.origin/libs/sdklt/bcmltd/include/bcmltd/bcmltd_handler.h	2024-07-15 22:05:29.945054313 +0200
++++ sdk-6.5.21.new/libs/sdklt/bcmltd/include/bcmltd/bcmltd_handler.h	2024-07-15 22:04:04.810617320 +0200
+@@ -662,7 +662,7 @@
+     /*! Lookup function. */
+     const bcmltd_handler_inout_op_f   lookup;
+     /*! Delete function. */
+-    const bcmltd_handler_in_op_f      delete;
++    const bcmltd_handler_in_op_f      del;
+     /*! Update function. */
+     const bcmltd_handler_in_op_f      update;
+     /*! HA handlers. */
+diff -Naur sdk-6.5.21.origin/libs/sdklt/bcmltm/db/bcmltm_db_info_dump.c sdk-6.5.21.new/libs/sdklt/bcmltm/db/bcmltm_db_info_dump.c
+--- sdk-6.5.21.origin/libs/sdklt/bcmltm/db/bcmltm_db_info_dump.c	2024-07-15 22:05:29.969055000 +0200
++++ sdk-6.5.21.new/libs/sdklt/bcmltm/db/bcmltm_db_info_dump.c	2024-07-15 22:04:04.830617892 +0200
+@@ -2215,7 +2215,7 @@
+                       (unsigned long)handler->lookup);
+         shr_pb_printf(pb, "%s  delete_f=0x%lx\n",
+                       prefix,
+-                      (unsigned long)handler->delete);
++                      (unsigned long)handler->del);
+         shr_pb_printf(pb, "%s  update_f=0x%lx\n",
+                       prefix,
+                       (unsigned long)handler->update);
+diff -Naur sdk-6.5.21.origin/libs/sdklt/bcmltm/ee_stage/bcmltm_ee_lta.c sdk-6.5.21.new/libs/sdklt/bcmltm/ee_stage/bcmltm_ee_lta.c
+--- sdk-6.5.21.origin/libs/sdklt/bcmltm/ee_stage/bcmltm_ee_lta.c	2024-07-15 22:05:29.969055000 +0200
++++ sdk-6.5.21.new/libs/sdklt/bcmltm/ee_stage/bcmltm_ee_lta.c	2024-07-15 22:04:04.834618007 +0200
+@@ -541,7 +541,7 @@
+                                     lta_handler->arg));
+     } else {
+         SHR_IF_ERR_VERBOSE_EXIT
+-            (lta_handler->delete(unit,
++            (lta_handler->del(unit,
+                                  lt_entry->trans_id,
+                                  in_fields,
+                                  lta_handler->arg));
