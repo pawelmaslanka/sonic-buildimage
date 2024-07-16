@@ -106,7 +106,7 @@ hsdk_env:
 	cd /; sudo ln -s $(KERNLDIR)/debian/linux-headers-$(KERNVERSION)-amd64/usr/src/linux-headers-$(KERNVERSION)-amd64/arch/x86/module.lds /usr/src/linux-headers-$(KERNVERSION)-common/arch/x86/module.lds 2>/dev/null || true
 	cd /; sudo ln -s $(KERNLDIR)/debian/linux-headers-$(KERNVERSION)-amd64/usr/src/linux-headers-$(KERNVERSION)-amd64/include/config/ /usr/src/linux-headers-$(KERNVERSION)-common/include/config 2>/dev/null || true
 	cd /; sudo cp $(KERNLDIR)/debian/linux-headers-$(KERNVERSION)-amd64/usr/src/linux-headers-$(KERNVERSION)-amd64/Module.symvers /usr/src/linux-headers-$(KERNVERSION)-common/Module.symvers 2>/dev/null || true
-	(cd /sonic/src/OpenBCM/sdk-6.5.21; git clean --force -d -x; git reset --hard; patch -p1 < /sonic/src/openbcm/0001-enable-build-on-sonic-202305.patch; cd /sonic/src/openbcm)
+	(cd /sonic/src/OpenBCM/sdk-6.5.21; git clean --force -d -x; git reset --hard; patch -p1 < /sonic/src/openbcm/0001-enable-build-on-sonic-202305.patch; patch -p1 < /sonic/src/openbcm/0002-cpp-rename-delete-identifier.patch; cd /sonic/src/openbcm)
 
 kdist_config: prep-deb-files
 
