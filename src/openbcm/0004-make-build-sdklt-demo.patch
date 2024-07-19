@@ -1,0 +1,46 @@
+diff -Naur sdk-6.5.21.origin/libs/sdklt/appl/demo/Makefile sdk-6.5.21.new/libs/sdklt/appl/demo/Makefile
+--- sdk-6.5.21.origin/libs/sdklt/appl/demo/Makefile	2024-07-19 14:22:38.626911533 +0200
++++ sdk-6.5.21.new/libs/sdklt/appl/demo/Makefile	2024-07-19 14:23:39.244655754 +0200
+@@ -148,11 +148,12 @@
+ # directories.
+ #
+ INCLUDES += -I$(SDK_INCDIR)
++INCLUDES += -I$(SDK_LIBDIR)/include/sdklt
+ OBJS =	main.o version.o
+ BOBJS = $(addprefix $(BLDDIR)/,$(OBJS))
+ 
+ # Name and destination of executable
+-PRG = $(DSTDIR)/sdklt$(DSTSUFFIX)
++PRG = $(DSTDIR)/sdklt$(DSTSUFFIX)/demo
+ 
+ .PHONY: all sdk kmod demo
+ 
+@@ -174,7 +175,7 @@
+ LDOBJS = $(BOBJS)
+ 
+ # Link SDK static library
+-LDLIBS += $(SDK_LIBDIR)/libsdklt.a
++LDLIBS += $(SDK_LIBDIR)/lib/libsdklt.a
+ 
+ # Non-SDK libraries
+ LDLIBS += $(OPENSRC_LIBS) $(EXTRA_LIBS) -pthread -lrt -ldl -lm
+diff -Naur sdk-6.5.21.origin/libs/sdklt/bcmha/scripts/issu_version_list.py sdk-6.5.21.new/libs/sdklt/bcmha/scripts/issu_version_list.py
+--- sdk-6.5.21.origin/libs/sdklt/bcmha/scripts/issu_version_list.py	2024-07-19 14:22:38.850917979 +0200
++++ sdk-6.5.21.new/libs/sdklt/bcmha/scripts/issu_version_list.py	2024-07-19 14:19:34.613623823 +0200
+@@ -13,6 +13,7 @@
+ import sys
+ import os
+ from os import walk
++from functools import cmp_to_key
+ 
+ 
+ class issu_version_list:
+@@ -47,7 +48,7 @@
+         # proprietary compare function since the standard compare function compares
+         # strings by comparing character by character. That will lead to
+         # 1.2.9 > 1.2.10 which is not what we want.
+-        self.version_list.sort(cmp = lambda x, y: self.__my_comp_func(x, y), reverse = True)
++        self.version_list.sort(key = cmp_to_key(lambda x, y: self.__my_comp_func(x, y)), reverse = True)
+ 
+         # Delete all the versions that are predecessors to the start version
+         if start_ver in self.version_list:
