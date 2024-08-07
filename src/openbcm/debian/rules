@@ -73,6 +73,7 @@ CFGFLAGS += -DNO_CONTROL_C
 hsdk_build: sdklt
 
 sdklt:
+	# Build SDKLT
 	CROSS_COMPILE=x86_64-linux-gnu- \
 	LINUX_INCLUDE=$(KERNLDIR)/debian/linux-headers-$(KERNVERSION)-amd64/usr/src/linux-headers-$(KERNVERSION)-amd64/include \
 	KDIR=$(KERNLDIR)/debian/linux-headers-$(KERNVERSION)-common/usr/src/linux-headers-$(KERNVERSION)-common \
@@ -85,6 +86,41 @@ sdklt:
 	kernel_version=5_10 \
 	SDK_CFLAGS="-Wno-error=unused-but-set-variable -Wno-error=maybe-uninitialized -Wno-error=aggressive-loop-optimizations -Wno-error=sizeof-pointer-div -Wno-error=memset-elt-size -Wno-stringop-overflow -Wno-stringop-truncation -Wno-error=restrict -Wno-address-of-packed-member -Wno-error=uninitialized -Wno-error=format-overflow -fcommon  -DUSE_LINUX_BDE_MMAP=1 -Wno-error=unused-value -Wno-error=unused-function -Wno-error=cpp -Wno-error=array-bounds -Wno-error=strict-overflow -DUSE_LINUX_BDE_MMAP=1 -Wno-error=unused-value -Wno-error=unused-function -Wno-error=cpp -Wno-error=array-bounds -Wno-error=strict-overflow -Wno-error=strict-aliasing"
 	$(MAKE) KDIR=$(KERNLDIR)/debian/build/build_amd64_none_amd64 TARGET_PLATFORM=native -C $(SDKLT)/appl/demo all SDK=$(SDKLT) SDKLT=$(SDKLT) SYSTEM_INTERFACE=ngbde SDK_CFLAGS="-DSYS_BE_PIO=0 -DSYS_BE_PACKET=0 -DSYS_BE_OTHER=0 -DLE_HOST=1" CFLAGS="$(SDKLT_EXTRA_CFLAGS) -I$(SDKLT)/lib/include/sdklt/shr" BLDDIR=$(SDK)/build SDK_BLDDIR=$(SDK)/build/sdklt SDK_DSTDIR=$(SDK)/build/sdklt/lib TARGET=unix-user platform=x86-smp_generic_64-2_6
+
+	# Build BCM-LTSW wrapper
+	CROSS_COMPILE=x86_64-linux-gnu- \
+	LINUX_INCLUDE=$(KERNLDIR)/debian/linux-headers-$(KERNVERSION)-amd64/usr/src/linux-headers-$(KERNVERSION)-amd64/include \
+	KDIR=$(KERNLDIR)/debian/linux-headers-$(KERNVERSION)-common/usr/src/linux-headers-$(KERNVERSION)-common \
+	ARCH=x86_64 \
+	kernel_version=5_10 \
+	YAML=/usr \
+	YAML_LIBDIR=/usr/lib/x86_64-linux-gnu \
+	FEATURE_LIST="$(FEATURE_LIST)" CFGFLAGS="$(CFGFLAGS)" \
+	SYSTEM_INTERFACE=ngbde LTSW_CHIPS=1 LTSW_INCLUDE_XFS=1 INCLUDE_KNET=1 BCM_PTL_SPT=1 BCM_56880_A0=1 PHYMOD_SUPPORT=1 PORTMOD_SUPPORT=1 \
+	kernel_version=5_10 \
+	SDK_CFLAGS="-Wno-error=unused-but-set-variable -Wno-error=maybe-uninitialized -Wno-error=aggressive-loop-optimizations -Wno-error=sizeof-pointer-div -Wno-error=memset-elt-size -Wno-stringop-overflow -Wno-stringop-truncation -Wno-error=restrict -Wno-address-of-packed-member -Wno-error=uninitialized -Wno-error=format-overflow -fcommon  -DUSE_LINUX_BDE_MMAP=1 -Wno-error=unused-value -Wno-error=unused-function -Wno-error=cpp -Wno-error=array-bounds -Wno-error=strict-overflow -DUSE_LINUX_BDE_MMAP=1 -Wno-error=unused-value -Wno-error=unused-function -Wno-error=cpp -Wno-error=array-bounds -Wno-error=strict-overflow -Wno-error=strict-aliasing"
+	$(MAKE) BUILD_SDKLT=1 LTSW_INCLUDE_CHIPS=BCM_56880_A0 LTSW_CHIPS=1 LTSW_INCLUDE_XFS=1 INCLUDE_KNET=1 BCM_PTL_SPT=1 BCM_56880_A0=1 KDIR=$(KERNLDIR)/debian/build/build_amd64_none_amd64 TARGET_PLATFORM=native -f $(SDK)/make/Make.libsum BUILD_SDKLT=1 LTSW_INCLUDE_CHIPS=BCM_56880_A0 LTSW_CHIPS=1 LTSW_INCLUDE_XFS=1 INCLUDE_KNET=1 BCM_PTL_SPT=1 BCM_56880_A0=1 SDK=$(SDK) SDKLT=$(SDKLT) SYSTEM_INTERFACE=ngbde SDK_CFLAGS="-DSYS_BE_PIO=0 -DSYS_BE_PACKET=0 -DSYS_BE_OTHER=0 -DLE_HOST=1" CFLAGS="$(SDKLT_EXTRA_CFLAGS) -I$(SDK)/include -include $(SDK)/include/soc/mcm/enum_types.h -include $(SDK)/include/soc/mcm/enum_max.h -include $(SDK)/include/soc/mcm/allenum.h -I$(SDK)/systems/bde/linux/include -I/sonic/src/OpenBCM/sdk-6.5.21/build/sdklt/lib/include/sdklt -DINCLUDE_L3" BLDDIR=$(SDK)/build SDK_BLDDIR=$(SDK)/build/sdklt SDK_DSTDIR=$(SDK)/build/sdklt/lib TARGET=unix-user platform=x86-smp_generic_64-2_6
+
+	@mkdir -p $(SDK)/build/unix-user/
+	@ar -r $(SDK)/build/unix-user/liblubde.a
+
+	# The following build process won't finish successfully due to the following error:
+	# core/phymod_diagnostics_dispatch.c:1750:45: error: unknown type name 'phymod_phy_pmd_usr_misc_ctrl_t'
+ 	# 1750 | int phymod_phy_pmd_usr_misc_ctrl_t_validate(phymod_phy_pmd_usr_misc_ctrl_t phymod_phy_pmd_usr_misc_ctrl)
+	# So just allow to generate necessary libs for further use with user application :) 
+	CROSS_COMPILE=x86_64-linux-gnu- \
+	LINUX_INCLUDE=$(KERNLDIR)/debian/linux-headers-$(KERNVERSION)-amd64/usr/src/linux-headers-$(KERNVERSION)-amd64/include \
+	KDIR=$(KERNLDIR)/debian/linux-headers-$(KERNVERSION)-common/usr/src/linux-headers-$(KERNVERSION)-common \
+	ARCH=x86_64 \
+	kernel_version=5_10 \
+	YAML=/usr \
+	YAML_LIBDIR=/usr/lib/x86_64-linux-gnu \
+	FEATURE_LIST="$(FEATURE_LIST)" CFGFLAGS="$(CFGFLAGS)" \
+	SYSTEM_INTERFACE=ngbde LTSW_CHIPS=1 LTSW_INCLUDE_XFS=1 INCLUDE_KNET=1 BCM_PTL_SPT=1 BCM_56880_A0=1 PHYMOD_SUPPORT=1 PORTMOD_SUPPORT=1 \
+	kernel_version=5_10 \
+	SDK_CFLAGS="-Wno-error=unused-but-set-variable -Wno-error=maybe-uninitialized -Wno-error=aggressive-loop-optimizations -Wno-error=sizeof-pointer-div -Wno-error=memset-elt-size -Wno-stringop-overflow -Wno-stringop-truncation -Wno-error=restrict -Wno-address-of-packed-member -Wno-error=uninitialized -Wno-error=format-overflow -fcommon  -DUSE_LINUX_BDE_MMAP=1 -Wno-error=unused-value -Wno-error=unused-function -Wno-error=cpp -Wno-error=array-bounds -Wno-error=strict-overflow -DUSE_LINUX_BDE_MMAP=1 -Wno-error=unused-value -Wno-error=unused-function -Wno-error=cpp -Wno-error=array-bounds -Wno-error=strict-overflow -Wno-error=strict-aliasing"
+	$(MAKE) V=1 CFGFLAGS="$(CFGFLAGS) -DBCM_LTSW_SUPPORT" SDK_CPPFLAGS="$(SDKLT_EXTRA_CFLAGS) -I/sonic/src/OpenBCM/sdk-6.5.21/build/sdklt/lib/include/sdklt -I$(SDKLT)/linux/include -I$(SDKLT)/bcmptm/chip" BUILD_SDKLT=1 LTSW_INCLUDE_CHIPS=BCM_56880_A0 LTSW_CHIPS=1 LTSW_INCLUDE_XFS=1 INCLUDE_KNET=1 BCM_PTL_SPT=1 BCM_56880_A0=1 KDIR=$(KERNLDIR)/debian/build/build_amd64_none_amd64 TARGET_PLATFORM=native -C $(SDK) all BUILD_SDKLT=1 LTSW_INCLUDE_CHIPS=BCM_56880_A0 LTSW_CHIPS=1 LTSW_INCLUDE_XFS=1 INCLUDE_KNET=1 BCM_PTL_SPT=1 BCM_56880_A0=1 SDK=$(SDK) SDKLT=$(SDKLT) SYSTEM_INTERFACE=ngbde SDK_CFLAGS="-DSYS_BE_PIO=0 -DSYS_BE_PACKET=0 -DSYS_BE_OTHER=0 -DLE_HOST=1" CFLAGS="$(SDKLT_EXTRA_CFLAGS) -I$(SDK)/include -include $(SDK)/include/soc/mcm/enum_types.h -include $(SDK)/include/soc/mcm/enum_max.h -I$(SDK)/systems/bde/linux/include -DINCLUDE_L3 -I$(SDK)/libs/phymod/include -I$(SDK)/libs/phymod/include/phymod -I/sonic/src/OpenBCM/sdk-6.5.21/build/sdklt/lib/include/sdklt -DPHYMOD_INCLUDE_CUSTOM_CONFIG -Wl,--verbose" BLDDIR=$(SDK)/build SDK_BLDDIR=$(SDK)/build/sdklt SDK_DSTDIR=$(SDK)/build/sdklt/lib TARGET=unix-user platform=x86-smp_generic_64-2_6 || true
+	# $(MAKE) V=1 CFGFLAGS="$(CFGFLAGS) -DBCM_LTSW_SUPPORT" SDK_CPPFLAGS="$(SDKLT_EXTRA_CFLAGS) -I/sonic/src/OpenBCM/sdk-6.5.21/build/sdklt/lib/include/sdklt -I$(SDKLT)/linux/include -I$(SDKLT)/bcmptm/chip" BUILD_SDKLT=1 LTSW_INCLUDE_CHIPS=BCM_56880_A0 LTSW_CHIPS=1 LTSW_INCLUDE_XFS=1 INCLUDE_KNET=1 BCM_PTL_SPT=1 BCM_56880_A0=1 KDIR=$(KERNLDIR)/debian/build/build_amd64_none_amd64 TARGET_PLATFORM=native -C $(SDK) all BUILD_SDKLT=1 LTSW_INCLUDE_CHIPS=BCM_56880_A0 LTSW_CHIPS=1 LTSW_INCLUDE_XFS=1 INCLUDE_KNET=1 BCM_PTL_SPT=1 BCM_56880_A0=1 SDK=$(SDK) SDKLT=$(SDKLT) SYSTEM_INTERFACE=ngbde SDK_CFLAGS="-DSYS_BE_PIO=0 -DSYS_BE_PACKET=0 -DSYS_BE_OTHER=0 -DLE_HOST=1" CFLAGS="$(SDKLT_EXTRA_CFLAGS) -I$(SDK)/include -include $(SDK)/include/soc/mcm/enum_types.h -include $(SDK)/include/soc/mcm/enum_max.h -include $(SDK)/include/soc/mcm/allenum.h -I$(SDK)/systems/bde/linux/include -DINCLUDE_L3 -I$(SDK)/libs/phymod/include -I$(SDK)/libs/phymod/include/phymod -I/sonic/src/OpenBCM/sdk-6.5.21/build/sdklt/lib/include/sdklt -DPHYMOD_INCLUDE_CUSTOM_CONFIG -Wl,--verbose" BLDDIR=$(SDK)/build SDK_BLDDIR=$(SDK)/build/sdklt SDK_DSTDIR=$(SDK)/build/sdklt/lib TARGET=unix-user platform=x86-smp_generic_64-2_6
 
 hsdk_env:
 	echo "Prepare HSDK env"
@@ -104,7 +140,7 @@ hsdk_env:
 	cd /; sudo ln -s $(KERNLDIR)/debian/linux-headers-$(KERNVERSION)-amd64/usr/src/linux-headers-$(KERNVERSION)-amd64/arch/x86/module.lds /usr/src/linux-headers-$(KERNVERSION)-common/arch/x86/module.lds 2>/dev/null || true
 	cd /; sudo ln -s $(KERNLDIR)/debian/linux-headers-$(KERNVERSION)-amd64/usr/src/linux-headers-$(KERNVERSION)-amd64/include/config/ /usr/src/linux-headers-$(KERNVERSION)-common/include/config 2>/dev/null || true
 	cd /; sudo cp $(KERNLDIR)/debian/linux-headers-$(KERNVERSION)-amd64/usr/src/linux-headers-$(KERNVERSION)-amd64/Module.symvers /usr/src/linux-headers-$(KERNVERSION)-common/Module.symvers 2>/dev/null || true
-	(cd /sonic/src/OpenBCM/sdk-6.5.21; git clean --force -d -x; git reset --hard; patch -p1 < /sonic/src/openbcm/0001-enable-build-on-sonic-202305.patch; patch -p1 < /sonic/src/openbcm/0002-cpp-rename-delete-identifier.patch; cd /sonic/src/openbcm)
+	(cd /sonic/src/OpenBCM/sdk-6.5.21; git clean --force -d -x; git reset --hard; patch -p1 < /sonic/src/openbcm/0001-enable-build-on-sonic-202305.patch; patch -p1 < /sonic/src/openbcm/0002-cpp-rename-delete-identifier.patch; patch -p1 < /sonic/src/openbcm/0003-make-build-kmodules-based-on-linux-5.10.patch; patch -p1 < /sonic/src/openbcm/0004-make-build-sdklt-demo.patch; cd /sonic/src/openbcm)
 
 kdist_config: prep-deb-files
 

@@ -1,0 +1,114 @@
+diff -Naur sdk-6.5.21.origin/libs/sdklt/linux/bde/ngbde_iio.c sdk-6.5.21.new/libs/sdklt/linux/bde/ngbde_iio.c
+--- sdk-6.5.21.origin/libs/sdklt/linux/bde/ngbde_iio.c	2024-07-19 13:38:46.167827615 +0200
++++ sdk-6.5.21.new/libs/sdklt/linux/bde/ngbde_iio.c	2024-07-19 13:43:58.720725836 +0200
+@@ -24,7 +24,7 @@
+         ngbde_iio_unmap(devh);
+     }
+ 
+-    sd->iio_mem = ioremap_nocache(addr, size);
++    sd->iio_mem = ioremap(addr, size);
+ 
+     if (sd->iio_mem) {
+         /* Save mapped resources */
+@@ -94,7 +94,7 @@
+         iounmap(sd->paxb_mem);
+     }
+ 
+-    sd->paxb_mem = ioremap_nocache(addr, size);
++    sd->paxb_mem = ioremap(addr, size);
+ 
+     if (sd->paxb_mem) {
+         /* Save mapped resources */
+diff -Naur sdk-6.5.21.origin/libs/sdklt/linux/bde/ngbde_iproc_probe.c sdk-6.5.21.new/libs/sdklt/linux/bde/ngbde_iproc_probe.c
+--- sdk-6.5.21.origin/libs/sdklt/linux/bde/ngbde_iproc_probe.c	2024-07-19 13:38:46.167827615 +0200
++++ sdk-6.5.21.new/libs/sdklt/linux/bde/ngbde_iproc_probe.c	2024-08-07 19:58:08.932010003 +0200
+@@ -53,7 +53,7 @@
+                (void *)memres->start, (void *)memres->end);
+     }
+ 
+-    base_address = ioremap_nocache(memres->start, size);
++    base_address = ioremap(memres->start, size);
+     if (!base_address) {
+         printk(KERN_WARNING "Error mapping iProc CMIC registers");
+         return -1;
+diff -Naur sdk-6.5.21.origin/libs/sdklt/linux/bde/ngbde_pio.c sdk-6.5.21.new/libs/sdklt/linux/bde/ngbde_pio.c
+--- sdk-6.5.21.origin/libs/sdklt/linux/bde/ngbde_pio.c	2024-07-19 13:38:46.167827615 +0200
++++ sdk-6.5.21.new/libs/sdklt/linux/bde/ngbde_pio.c	2024-07-19 13:43:47.244399061 +0200
+@@ -24,7 +24,7 @@
+         ngbde_pio_unmap(devh);
+     }
+ 
+-    sd->pio_mem = ioremap_nocache(addr, size);
++    sd->pio_mem = ioremap(addr, size);
+ 
+     if (sd->pio_mem) {
+         /* Save mapped resources */
+diff -Naur sdk-6.5.21.origin/libs/sdklt/linux/knet/ngknet_linux.c sdk-6.5.21.new/libs/sdklt/linux/knet/ngknet_linux.c
+--- sdk-6.5.21.origin/libs/sdklt/linux/knet/ngknet_linux.c	2024-07-19 13:38:46.171827729 +0200
++++ sdk-6.5.21.new/libs/sdklt/linux/knet/ngknet_linux.c	2024-07-19 13:42:07.065546744 +0200
+@@ -27,11 +27,11 @@
+ unsigned long
+ sal_time_usecs(void)
+ {
+-    struct timeval tv;
++    struct timespec64 tv;
+ 
+     kal_time_val_get(&tv);
+ 
+-    return tv.tv_sec * 1000000 + tv.tv_usec;
++    return tv.tv_sec * 1000000 + tv.tv_nsec / 1000;
+ }
+ 
+ void
+diff -Naur sdk-6.5.21.origin/libs/sdklt/linux/knet/ngknet_linux.h sdk-6.5.21.new/libs/sdklt/linux/knet/ngknet_linux.h
+--- sdk-6.5.21.origin/libs/sdklt/linux/knet/ngknet_linux.h	2024-07-19 13:38:46.171827729 +0200
++++ sdk-6.5.21.new/libs/sdklt/linux/knet/ngknet_linux.h	2024-07-19 13:42:19.973914257 +0200
+@@ -103,12 +103,9 @@
+ }
+ #else
+ static inline void
+-kal_time_val_get(struct timeval *tv)
++kal_time_val_get(struct timespec64 *tv)
+ {
+-    struct timespec64 ts;
+-    ktime_get_real_ts64(&ts);
+-    tv->tv_sec = ts.tv_sec;
+-    tv->tv_usec = ts.tv_nsec / 1000;
++    ktime_get_real_ts64(tv);
+ }
+ #endif /* KERNEL_VERSION(3,17,0) */
+ 
+diff -Naur sdk-6.5.21.origin/libs/sdklt/linux/knet/ngknet_main.c sdk-6.5.21.new/libs/sdklt/linux/knet/ngknet_main.c
+--- sdk-6.5.21.origin/libs/sdklt/linux/knet/ngknet_main.c	2024-07-19 13:38:46.171827729 +0200
++++ sdk-6.5.21.new/libs/sdklt/linux/knet/ngknet_main.c	2024-07-19 13:41:47.917001579 +0200
+@@ -70,6 +70,7 @@
+ #include <linux/bitops.h>
+ #include <linux/time.h>
+ #include <linux/random.h>
++#include <linux/ethtool.h>
+ 
+ #include <lkm/ngbde_kapi.h>
+ #include <lkm/ngknet_dev.h>
+@@ -221,7 +222,7 @@
+ static void
+ ngknet_pkt_stats(struct pdma_dev *pdev, int dir)
+ {
+-    static struct timeval tv0[2], tv1[2];
++    static struct timespec64 tv0[2], tv1[2];
+     static uint32_t pkts[2] = {0}, prts[2] = {0};
+     static uint64_t intrs = 0;
+ 
+@@ -234,7 +235,7 @@
+         uint32_t pps;
+         kal_time_val_get(&tv1[dir]);
+         iv_time = (tv1[dir].tv_sec - tv0[dir].tv_sec) * 1000000 +
+-                  (tv1[dir].tv_usec - tv0[dir].tv_usec);
++                  (tv1[dir].tv_nsec - tv0[dir].tv_nsec) / 1000;
+         pps = 100000 * 1000 / (iv_time / 1000);
+         prts[dir]++;
+         if (pps <= 100000 || prts[dir] * 100000 >= pps) {
+@@ -2659,4 +2660,3 @@
+ 
+ module_init(ngknet_init_module);
+ module_exit(ngknet_exit_module);
+-
